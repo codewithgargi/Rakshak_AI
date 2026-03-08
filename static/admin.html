@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rakshak AI — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #080c10;
+  --bg2: #0e1419;
+  --card: #111820;
+  --border: rgba(0,200,180,0.12);
+  --teal: #00c8b4;
+  --teal2: #00ffe8;
+  --red: #ff4560;
+  --amber: #f5a623;
+  --green: #00e676;
+  --t1: #e0f0ee;
+  --t2: #7aa09a;
+  --t3: #3a5550;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--t1); font-family: var(--sans); }
+
+#login-screen {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); z-index: 100;
+}
+.login-box {
+  width: 360px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 16px;
+  padding: 40px; text-align: center;
+}
+.login-logo { font-family: var(--mono); font-size: 13px; color: var(--teal); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+.login-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--t2); margin-bottom: 32px; }
+.login-input {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px; color: var(--t1);
+  font-family: var(--mono); font-size: 14px; outline: none;
+  margin-bottom: 14px; transition: border-color 0.2s;
+}
+.login-input:focus { border-color: var(--teal); }
+.login-btn {
+  width: 100%; background: var(--teal); color: #000; border: none;
+  border-radius: 8px; padding: 12px; font-family: var(--mono);
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; transition: background 0.2s, transform 0.1s;
+}
+.login-btn:hover { background: var(--teal2); transform: translateY(-1px); }
+.login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.login-error { margin-top: 12px; font-size: 12px; color: var(--red); display: none; }
+
+#dashboard { display: none; min-height: 100vh; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 32px; border-bottom: 1px solid var(--border);
+  background: var(--bg2); position: sticky; top: 0; z-index: 10;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { font-family: var(--mono); font-size: 11px; color: var(--teal); letter-spacing: 3px; text-transform: uppercase; }
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.refresh-btn { background: none; border: 1px solid var(--border); color: var(--t2); border-radius: 6px; padding: 6px 14px; font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.refresh-btn:hover { border-color: var(--teal); color: var(--teal); }
+.logout-btn { background: none; border: 1px solid rgba(255,69,96,0.3); color: var(--red); border-radius: 6px; padding: 6px 14px; font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.logout-btn:hover { background: rgba(255,69,96,0.1); }
+
+.main { padding: 28px 32px; max-width: 1200px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.stat-card.teal::before { background: var(--teal); }
+.stat-card.green::before { background: var(--green); }
+.stat-card.amber::before { background: var(--amber); }
+.stat-card.red::before { background: var(--red); }
+.stat-label { font-family: var(--mono); font-size: 10px; color: var(--t2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.stat-value { font-family: var(--mono); font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+.stat-card.teal .stat-value { color: var(--teal); }
+.stat-card.green .stat-value { color: var(--green); }
+.stat-card.amber .stat-value { color: var(--amber); }
+.stat-card.red .stat-value { color: var(--red); }
+.stat-sub { font-size: 12px; color: var(--t3); }
+
+.section-title { font-family: var(--mono); font-size: 11px; color: var(--teal); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+
+.log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.log-table th { font-family: var(--mono); font-size: 10px; color: var(--t2); letter-spacing: 1.5px; text-transform: uppercase; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.log-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--t1); font-family: var(--mono); font-size: 11px; }
+.log-table tr:hover td { background: rgba(0,200,180,0.03); }
+.log-table tr:last-child td { border-bottom: none; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-family: var(--mono); font-weight: 700; }
+.badge-triage { background: rgba(0,200,180,0.15); color: var(--teal); }
+.badge-symptoms { background: rgba(245,166,35,0.15); color: var(--amber); }
+.badge-transcribe { background: rgba(0,230,118,0.15); color: var(--green); }
+
+.ip-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.ip-item:last-child { border-bottom: none; }
+.ip-addr { font-family: var(--mono); font-size: 12px; color: var(--t1); }
+.ip-count { font-family: var(--mono); font-size: 11px; color: var(--teal); background: rgba(0,200,180,0.1); padding: 2px 10px; border-radius: 20px; }
+
+.empty-state { text-align: center; padding: 40px; color: var(--t3); font-family: var(--mono); font-size: 12px; }
+.last-updated { font-family: var(--mono); font-size: 10px; color: var(--t3); text-align: right; margin-top: 20px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--t3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Rakshak AI</div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">Enter password to continue</div>
+    <input type="password" id="pwd-input" class="login-input" placeholder="Password"
+      onkeydown="if(event.key==='Enter') doLogin()"/>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">ACCESS DASHBOARD</button>
+    <div class="login-error" id="login-error">❌ Wrong password</div>
+  </div>
+</div>
+
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">Rakshak AI</div>
+      <div class="topbar-title">Admin Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-dot"></div>
+      <button class="refresh-btn" onclick="loadStats()">⟳ Refresh</button>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="stats-grid">
+      <div class="stat-card teal">
+        <div class="stat-label">Total Requests</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">All time</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Today</div>
+        <div class="stat-value" id="stat-today">—</div>
+        <div class="stat-sub">Requests today</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Unique IPs</div>
+        <div class="stat-value" id="stat-ips">—</div>
+        <div class="stat-sub">Unique users</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Rate Limited</div>
+        <div class="stat-value" id="stat-blocked">—</div>
+        <div class="stat-sub">Blocked requests</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="section-title">Endpoint Breakdown</div>
+        <div id="endpoint-breakdown"></div>
+      </div>
+      <div class="panel">
+        <div class="section-title">Top Users (by IP)</div>
+        <div id="top-ips"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:20px">
+      <div class="section-title">Recent Requests</div>
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Time</th><th>Endpoint</th><th>IP</th><th>File / Details</th>
+          </tr>
+        </thead>
+        <tbody id="recent-logs"></tbody>
+      </table>
+    </div>
+    <div class="last-updated" id="last-updated"></div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let autoRefreshTimer = null;
+
+async function doLogin() {
+  const pwd = document.getElementById('pwd-input').value.trim();
+  if (!pwd) return;
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'VERIFYING...';
+  document.getElementById('login-error').style.display = 'none';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/stats`, {
+      headers: { 'X-Admin-Key': pwd }
+    });
+    if (res.ok) {
+      // Password HTML mein nahi hai — sirf sessionStorage mein runtime pe save hota hai
+      sessionStorage.setItem('rakshak_admin_key', pwd);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      renderStats(await res.json());
+      startAutoRefresh();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('pwd-input').value = '';
+      sessionStorage.removeItem('rakshak_admin_key');
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = '❌ Server unreachable';
+    document.getElementById('login-error').style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'ACCESS DASHBOARD';
+}
+
+function doLogout() {
+  sessionStorage.removeItem('rakshak_admin_key');
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  location.reload();
+}
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(loadStats, 30000);
+}
+
+async function loadStats() {
+  const pwd = sessionStorage.getItem('rakshak_admin_key');
+  if (!pwd) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/stats`, {
+      headers: { 'X-Admin-Key': pwd }
+    });
+    if (res.status === 403) { doLogout(); return; }
+    if (!res.ok) throw new Error('Failed');
+    renderStats(await res.json());
+  } catch(e) {
+    document.getElementById('last-updated').textContent =
+      '⚠️ Refresh failed — ' + new Date().toLocaleTimeString();
+  }
+}
+
+function renderStats(data) {
+  document.getElementById('stat-total').textContent = data.total_requests ?? 0;
+  document.getElementById('stat-today').textContent = data.today_requests ?? 0;
+  document.getElementById('stat-ips').textContent = data.unique_ips ?? 0;
+  document.getElementById('stat-blocked').textContent = data.rate_limited ?? 0;
+
+  const epDiv = document.getElementById('endpoint-breakdown');
+  epDiv.innerHTML = '';
+  const endpoints = data.endpoints || {};
+  const total = data.total_requests || 1;
+  const colorMap = { triage: 'teal', symptoms: 'amber', transcribe: 'green' };
+  ['triage', 'symptoms', 'transcribe'].forEach(ep => {
+    const count = endpoints[ep] || 0;
+    const pct = Math.round((count / total) * 100);
+    epDiv.innerHTML += `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span class="badge badge-${ep}">/api/${ep}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--t2)">${count} reqs</span>
+        </div>
+        <div style="height:4px;background:var(--bg2);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--${colorMap[ep]});border-radius:2px;transition:width 0.5s"></div>
+        </div>
+      </div>`;
+  });
+
+  const ipDiv = document.getElementById('top-ips');
+  ipDiv.innerHTML = '';
+  const ips = data.top_ips || [];
+  if (ips.length === 0) {
+    ipDiv.innerHTML = '<div class="empty-state">No data yet</div>';
+  } else {
+    ips.slice(0, 8).forEach(([ip, count]) => {
+      ipDiv.innerHTML += `
+        <div class="ip-item">
+          <span class="ip-addr">${ip}</span>
+          <span class="ip-count">${count} req</span>
+        </div>`;
+    });
+  }
+
+  const tbody = document.getElementById('recent-logs');
+  tbody.innerHTML = '';
+  const logs = data.recent_logs || [];
+  if (logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No logs yet</td></tr>';
+  } else {
+    logs.slice(0, 20).forEach(log => {
+      const epClass = log.endpoint?.includes('triage') ? 'triage' :
+                      log.endpoint?.includes('symptoms') ? 'symptoms' : 'transcribe';
+      tbody.innerHTML += `
+        <tr>
+          <td>${log.time || '—'}</td>
+          <td><span class="badge badge-${epClass}">${log.endpoint || '—'}</span></td>
+          <td>${log.ip || '—'}</td>
+          <td style="color:var(--t2)">${log.detail || '—'}</td>
+        </tr>`;
+    });
+  }
+
+  document.getElementById('last-updated').textContent =
+    'Last updated: ' + new Date().toLocaleTimeString();
+}
+
+// Page load pe check karo — session already hai?
+window.addEventListener('load', () => {
+  const savedKey = sessionStorage.getItem('rakshak_admin_key');
+  if (savedKey) {
+    fetch(`${API_BASE}/admin/stats`, { headers: { 'X-Admin-Key': savedKey } })
+      .then(res => {
+        if (res.ok) {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          res.json().then(renderStats);
+          startAutoRefresh();
+        } else {
+          sessionStorage.removeItem('rakshak_admin_key');
+        }
+      })
+      .catch(() => sessionStorage.removeItem('rakshak_admin_key'));
+  }
+});
+</script>
+</body>
+</html>
