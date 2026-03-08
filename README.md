@@ -1,4 +1,4 @@
-# 🛡️ Rakshak AI — Your Health Guardian
+# Rakshak AI — Your Health Guardian
 
 > **AI for Bharat Hackathon** | Bilingual AI-powered health assistant for India
 
